@@ -29,7 +29,7 @@
     "semantic-release": "semantic-release"
   },
   "peerDependencies": {
-    "react": ">=16"
+    "react": ">=16.8.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.16.5",
