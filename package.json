@@ -1,7 +1,7 @@
 {
   "name": "react-aclify",
   "author": "Gabriel Moraes",
-  "version": "0.0.0-development",
+  "version": "0.1.0",
   "license": "MIT",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -25,7 +25,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --ext .ts,.tsx src/"
+    "lint": "eslint --ext .ts,.tsx src/",
+    "release": "pnpm build && pnpm test && git commit -am $npm_package_version && git tag $npm_package_version && git push && git push --tags && pnpm publish"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
