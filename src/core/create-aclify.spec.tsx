@@ -3,13 +3,26 @@ import userEvent from '@testing-library/user-event'
 
 import { createAclify, type CanAccessProps } from './create-aclify'
 
-const props: CanAccessProps<string, string> = {
+type Role = 'admin' | 'user'
+type Permission = 'read' | 'write'
+type User = {
+  id: number
+  name: string
+  roles: Role[]
+  permissions: Permission[]
+}
+
+const props: CanAccessProps<Role, Permission> = {
   roles: ['admin'],
   permissions: ['read'],
   children: <div>Authorized</div>,
 }
 
-const createAcl = () => createAclify<string, string, Record<string, any>>()
+const { AclifyProvider, CanAccess, useAclify } = createAclify<
+  Role,
+  Permission,
+  User
+>()
 
 const originalConsoleError = console.error
 
@@ -19,8 +32,6 @@ beforeEach(() => {
 
 describe('createAclify()', () => {
   it('returns AclifyProvider, useAclify and CanAccess', () => {
-    const { AclifyProvider, useAclify, CanAccess } = createAcl()
-
     expect(AclifyProvider).toBeInstanceOf(Function)
     expect(useAclify).toBeInstanceOf(Function)
     expect(CanAccess).toBeInstanceOf(Function)
@@ -30,7 +41,6 @@ describe('createAclify()', () => {
 describe('useAclify()', () => {
   it("throws an error when used outside of a <AclifyProvider />'s scope", () => {
     console.error = vi.fn()
-    const { useAclify } = createAcl()
 
     expect(() => renderHook(() => useAclify())).toThrowError(
       'useAclify must be used within a AclifyProvider',
@@ -38,8 +48,6 @@ describe('useAclify()', () => {
   })
 
   it('returns setUser and isAuthorized', () => {
-    const { AclifyProvider, useAclify } = createAcl()
-
     const { result } = renderHook(() => useAclify(), {
       wrapper: ({ children }) => (
         <AclifyProvider
@@ -58,8 +66,6 @@ describe('useAclify()', () => {
 
 describe('useAclify().isAuthorized()', () => {
   it('returns true when authorized', () => {
-    const { AclifyProvider, useAclify } = createAcl()
-
     const { result } = renderHook(() => useAclify(), {
       wrapper: ({ children }) => (
         <AclifyProvider
@@ -75,8 +81,6 @@ describe('useAclify().isAuthorized()', () => {
   })
 
   it('returns false when not authorized', () => {
-    const { AclifyProvider, useAclify } = createAcl()
-
     const { result } = renderHook(() => useAclify(), {
       wrapper: ({ children }) => (
         <AclifyProvider
@@ -94,8 +98,6 @@ describe('useAclify().isAuthorized()', () => {
 
 describe('useAclify().CanAccess', () => {
   it('renders children when authorized', () => {
-    const { CanAccess, AclifyProvider } = createAcl()
-
     render(
       <AclifyProvider
         getUserRoles={() => ['admin']}
@@ -109,8 +111,6 @@ describe('useAclify().CanAccess', () => {
   })
 
   it('does not render children when not authorized', () => {
-    const { CanAccess, AclifyProvider } = createAcl()
-
     render(
       <AclifyProvider
         getUserRoles={() => ['user']}
@@ -124,8 +124,6 @@ describe('useAclify().CanAccess', () => {
   })
 
   it('renders fallback when not authorized', () => {
-    const { CanAccess, AclifyProvider } = createAcl()
-
     render(
       <AclifyProvider
         getUserRoles={() => ['user']}
@@ -141,8 +139,6 @@ describe('useAclify().CanAccess', () => {
 
 describe('useAclify().setUser()', () => {
   it('updates user (checking with isAuthorized)', async () => {
-    const { AclifyProvider, useAclify } = createAcl()
-
     const Component = () => {
       const { setUser, isAuthorized } = useAclify()
 
@@ -175,7 +171,6 @@ describe('useAclify().setUser()', () => {
       <AclifyProvider
         getUserRoles={(user) => user?.roles ?? []}
         getUserPermissions={(user) => user?.permissions ?? []}
-        user={null}
       >
         <Component />
       </AclifyProvider>,
@@ -186,8 +181,6 @@ describe('useAclify().setUser()', () => {
   })
 
   it('updates user (checking with <CanAccess />)', async () => {
-    const { CanAccess, AclifyProvider, useAclify } = createAcl()
-
     const Component = () => {
       const { setUser } = useAclify()
 
@@ -218,7 +211,6 @@ describe('useAclify().setUser()', () => {
       <AclifyProvider
         getUserRoles={(user) => user?.roles ?? []}
         getUserPermissions={(user) => user?.permissions ?? []}
-        user={null}
       >
         <Component />
       </AclifyProvider>,
@@ -229,8 +221,6 @@ describe('useAclify().setUser()', () => {
   })
 
   it("toggles between 'Authorized' and 'Not authorized'", async () => {
-    const { AclifyProvider, useAclify } = createAcl()
-
     const Component = () => {
       const { setUser, isAuthorized } = useAclify()
 
@@ -267,7 +257,6 @@ describe('useAclify().setUser()', () => {
       <AclifyProvider
         getUserRoles={(user) => user?.roles ?? []}
         getUserPermissions={(user) => user?.permissions ?? []}
-        user={null}
       >
         <Component />
       </AclifyProvider>,

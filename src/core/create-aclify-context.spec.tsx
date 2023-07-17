@@ -29,7 +29,7 @@ describe('createAclifyContext()', () => {
       ),
     })
 
-    expect(result.current.user).not.toBeDefined()
+    expect(result.current.user).toBeNull()
     expect(result.current.getUserRoles).toBeInstanceOf(Function)
     expect(result.current.getUserPermissions).toBeInstanceOf(Function)
     expect(result.current.setUser).toBeInstanceOf(Function)

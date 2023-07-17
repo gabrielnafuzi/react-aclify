@@ -7,9 +7,18 @@ export type CanAccessProps<
   Roles extends string,
   Permissions extends string = string,
 > = {
+  /**
+   * The roles required to access the content.
+   */
   roles: Roles[]
+  /**
+   * The permissions required to access the content.
+   */
   permissions?: Permissions[]
   children: React.ReactNode
+  /**
+   * The fallback to render when the user is not authorized.
+   */
   fallback?: React.ReactNode
 }
 
@@ -28,6 +37,11 @@ export function createAclify<
     const { getUserPermissions, getUserRoles, user, setUser } =
       useAclifyContext()
 
+    /**
+     * Check if the user is authorized to access the content.
+     * @param roles The roles required to access the content.
+     * @param permissions The permissions required to access the content.
+     */
     const isAuthorized = useCallback(
       (roles: Role[], permissions?: Permission[]) => {
         return canAccessHelper({
