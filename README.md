@@ -156,7 +156,7 @@ const Component = () => {
 
 ## Contribute
 
-Contributions to evebus are always welcome! If you find a bug or have an idea for a new feature, feel free to open an issue or submit a pull request. Every contribution helps make evebus a better tool for everyone.
+Contributions to react-aclify are always welcome! If you find a bug or have an idea for a new feature, feel free to open an issue or submit a pull request. Every contribution helps make react-aclify a better tool for everyone.
 
 ## License
 
