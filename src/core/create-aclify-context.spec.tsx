@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 
 import { createAclifyContext } from './create-aclify-context'
+import { DEFAULT_STORAGE_KEY } from './storage'
 
 const originalConsoleError = console.error
 
@@ -56,5 +57,35 @@ describe('createAclifyContext()', () => {
     expect(() => renderHook(() => useAclify())).toThrowError(
       'useAclify must be used within a AclifyProvider',
     )
+  })
+
+  it("users initial state from storage if it's available", () => {
+    localStorage.setItem(
+      DEFAULT_STORAGE_KEY,
+      JSON.stringify({
+        id: 1,
+        roles: ['admin'],
+        permissions: ['read'],
+      }),
+    )
+
+    const { AclifyProvider, useAclify } = createAclifyContext()
+
+    const { result } = renderHook(() => useAclify(), {
+      wrapper: ({ children }) => (
+        <AclifyProvider
+          getUserRoles={() => ['admin']}
+          getUserPermissions={() => ['read']}
+        >
+          {children}
+        </AclifyProvider>
+      ),
+    })
+
+    expect(result.current.user).toEqual({
+      id: 1,
+      roles: ['admin'],
+      permissions: ['read'],
+    })
   })
 })
