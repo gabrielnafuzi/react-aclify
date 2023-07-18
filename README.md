@@ -38,13 +38,13 @@ For better TypeScript support, you can also pass the Roles, Permissions, and Use
 ```ts
 import { createAclify } from 'react-aclify'
 
-type Roles = 'admin' | 'user'
-type Permissions = 'posts:read' | 'posts:create' | 'posts:delete'
+type Role = 'admin' | 'user'
+type Permission = 'posts:read' | 'posts:create' | 'posts:delete'
 type User = {
   id: string
   /* ... */
-  roles: Roles[]
-  permissions: Permissions[]
+  roles: Role[]
+  permissions: Permission[]
 }
 
 export const { CanAccess, useAclify, AclifyProvider } = createAclify<
