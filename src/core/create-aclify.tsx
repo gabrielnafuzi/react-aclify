@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-useless-fragment */
 import { useCallback, useMemo } from 'react'
 
 import { canAccessHelper } from './can-access-helper'
@@ -72,10 +73,10 @@ export function createAclify<
     const { isAuthorized } = useAclify()
 
     if (isAuthorized(roles, permissions)) {
-      return children
+      return <>{children}</>
     }
 
-    return fallback ?? null
+    return <>{fallback}</> ?? null
   }
 
   return {
