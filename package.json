@@ -3,6 +3,16 @@
   "author": "Gabriel Moraes",
   "version": "0.2.0",
   "license": "MIT",
+  "keywords": [
+    "react",
+    "acl",
+    "access control",
+    "roles",
+    "permissions",
+    "authorization",
+    "access control list",
+    "rbac"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "exports": {
