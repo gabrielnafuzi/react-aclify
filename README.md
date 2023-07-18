@@ -9,8 +9,11 @@ react-aclify is a highly useful package that provides a set of tools for Access 
 
 ## Features
 
-- **Simple**: react-aclify provides a simple API for managing user roles and permissions.
-- **TypeScript**: react-aclify has
+- **Role and Permission Management**: Utilize React hooks and components to easily manage user roles and permissions for more secure and controlled access.
+- **TypeScript Friendly**: Full TypeScript support provides strong type checking for user roles, permissions, and more, enhancing the development experience.
+- **Granular Access Control**: With the `CanAccess` component, control visibility of parts of your application based on user roles and permissions.
+- **Context Interaction**: The `useAclify` hook provides convenient methods (`setUser` and `isAuthorized`) for interacting with the user's roles and permissions in your context.
+- **Adaptable**: Thanks to its unopinionated design, react-aclify can be integrated with a variety of project architectures and libraries.
 
 ## Install
 
