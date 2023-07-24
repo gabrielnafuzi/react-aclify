@@ -51,8 +51,8 @@ type User = {
 }
 
 export const { CanAccess, useAclify, AclifyProvider } = createAclify<
-  Roles,
-  Permissions,
+  Role,
+  Permission,
   User
 >()
 ```
