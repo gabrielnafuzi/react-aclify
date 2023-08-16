@@ -6,6 +6,7 @@ import { DEFAULT_STORAGE_KEY } from './storage'
 const originalConsoleError = console.error
 
 beforeEach(() => {
+  localStorage.clear()
   console.error = originalConsoleError
 })
 
@@ -87,5 +88,51 @@ describe('createAclifyContext()', () => {
       roles: ['admin'],
       permissions: ['read'],
     })
+  })
+
+  it('uses other storage key if provided', () => {
+    const key = 'custom-storage-key'
+
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        id: 1,
+        roles: ['admin'],
+        permissions: ['read'],
+      }),
+    )
+
+    const { AclifyProvider, useAclify } = createAclifyContext()
+
+    const { result } = renderHook(() => useAclify(), {
+      wrapper: ({ children }) => (
+        <AclifyProvider
+          getUserRoles={() => ['admin']}
+          getUserPermissions={() => ['read']}
+          storageKey={key}
+        >
+          {children}
+        </AclifyProvider>
+      ),
+    })
+
+    const { result: resultDefault } = renderHook(() => useAclify(), {
+      wrapper: ({ children }) => (
+        <AclifyProvider
+          getUserRoles={() => ['admin']}
+          getUserPermissions={() => ['read']}
+        >
+          {children}
+        </AclifyProvider>
+      ),
+    })
+
+    expect(result.current.user).toEqual({
+      id: 1,
+      roles: ['admin'],
+      permissions: ['read'],
+    })
+
+    expect(resultDefault.current.user).toBeNull()
   })
 })
