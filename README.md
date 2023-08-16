@@ -76,6 +76,7 @@ const App = () => (
   <AclifyProvider
     getUserRoles={(user) => user?.roles || []}
     getUserPermissions={(user) => user?.permissions || []}
+    storageKey="__MY_APP_USER__" // optional (default: '__REACT_ACLIFY_USER__')
   >
     {/* Your application goes here */}
   </AclifyProvider>
