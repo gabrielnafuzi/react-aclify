@@ -76,7 +76,7 @@ export function createAclify<
       return <>{children}</>
     }
 
-    return <>{fallback}</> ?? null
+    return <>{fallback}</>
   }
 
   return {
