@@ -15,15 +15,10 @@ react-aclify is a highly useful package that provides a set of tools for Access 
 - **Context Interaction**: The `useAclify` hook provides convenient methods (`isAuthorized`) for interacting with the user's roles and permissions in your context.
 - **Adaptable**: Thanks to its unopinionated design, react-aclify can be integrated with a variety of project architectures and libraries.
 
-## Install
+## Installation
 
 ```bash
-# npm
 npm install react-aclify
-# yarn
-yarn add react-aclify
-# pnpm
-pnpm add react-aclify
 ```
 
 ## Usage
