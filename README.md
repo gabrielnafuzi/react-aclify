@@ -12,7 +12,7 @@ react-aclify is a highly useful package that provides a set of tools for Access 
 - **Role and Permission Management**: Utilize React hooks and components to easily manage user roles and permissions for more secure and controlled access.
 - **TypeScript Friendly**: Full TypeScript support provides strong type checking for user roles, permissions, and more, enhancing the development experience.
 - **Granular Access Control**: With the `CanAccess` component, control visibility of parts of your application based on user roles and permissions.
-- **Context Interaction**: The `useAclify` hook provides convenient methods (`setUser` and `isAuthorized`) for interacting with the user's roles and permissions in your context.
+- **Context Interaction**: The `useAclify` hook provides convenient methods (`isAuthorized`) for interacting with the user's roles and permissions in your context.
 - **Adaptable**: Thanks to its unopinionated design, react-aclify can be integrated with a variety of project architectures and libraries.
 
 ## Install
@@ -36,60 +36,47 @@ import { createAclify } from 'react-aclify'
 export const { CanAccess, useAclify, AclifyProvider } = createAclify()
 ```
 
-For better TypeScript support, you can also pass the Roles, Permissions, and User types to the `createAclify` function, so that way the components and hook will be typed accordingly:
+For better TypeScript support, you can also pass the Roles and Permissions types to the `createAclify` function, so that way the components and hook will be typed accordingly:
 
 ```ts
 import { createAclify } from 'react-aclify'
 
 type Role = 'admin' | 'user'
 type Permission = 'posts:read' | 'posts:create' | 'posts:delete'
-type User = {
-  id: string
-  /* ... */
-  roles: Role[]
-  permissions: Permission[]
-}
 
 export const { CanAccess, useAclify, AclifyProvider } = createAclify<
   Role,
-  Permission,
-  User
+  Permission
 >()
 ```
 
 ## `<AclifyProvider />`
 
-The `AclifyProvider` is a context provider that you use to wrap your application, or any part of it where you want to perform role or permission-based actions. The `AclifyProvider` accepts the following props:
+The `AclifyProvider` is a context provider that you use to wrap your application, or any part of it where you want to perform role or permission-based actions. The `AclifyProvider` accepts the following props
 
-- `getUserRoles`: A function to get the user's roles. This function will be used internally when checking permissions.
+- `userRoles`: An array of the current user's roles.
 
-- `getUserPermissions`: A function to get the user's permissions. This function will be used internally when checking permissions.
-
-- `storageKey` (optional): The key to use for storing the user in local storage. The default value is `'__REACT_ACLIFY_USER__'`.
+- `userPermissions`: An array of the current user's permissions.
 
 Here's an example of how you can use the `AclifyProvider`:
 
 ```jsx
 import { AclifyProvider } from '@/lib/aclify'
 
-const App = () => (
-  <AclifyProvider
-    getUserRoles={(user) => user?.roles || []}
-    getUserPermissions={(user) => user?.permissions || []}
-    storageKey="__MY_APP_USER__" // optional (default: '__REACT_ACLIFY_USER__')
-  >
-    {/* Your application goes here */}
-  </AclifyProvider>
-)
+const App = () => {
+  return (
+    <AclifyProvider userRoles={['admin']} userPermissions={['read']}>
+      {/* Your application goes here */}
+    </AclifyProvider>
+  )
+}
 ```
 
 ## `useAclify`
 
 The `useAclify` hook is used to interact with the `AclifyProvider` context. It returns an object with the following properties:
 
-- `setUser`: This function is used to set the current user. It's especially useful for updating the user's information in your application, such as after the user logs in or updates their profile.
-
-- `isAuthorized`: This function checks whether the user is authorized to access a certain part of the application based on their roles and permissions. It takes two parameters: an array of roles and an array of permissions, and it returns a boolean indicating whether the user is authorized.
+- `isAuthorized`: This function checks whether the user is authorized to access a certain part of the application based on their roles and permissions. It takes an object with `roles`, `permissions`, and an optional `validationMode`, and it returns a boolean indicating whether the user is authorized.
 
 Here's an example of how to use the `useAclify` hook:
 
@@ -97,23 +84,11 @@ Here's an example of how to use the `useAclify` hook:
 import { useAclify } from '@/lib/aclify'
 
 const Component = () => {
-  const { isAuthorized, setUser } = useAclify()
-
-  const handleLogin = () => {
-    // After successfully logging in, you can set the user's data using setUser.
-    setUser({
-      id: '123',
-      name: 'John Doe',
-      roles: ['user'],
-      permissions: ['posts:read'],
-    })
-  }
+  const { isAuthorized } = useAclify()
 
   return (
     <div>
-      <button onClick={handleLogin}>Login</button>
-
-      {isAuthorized(['user'], ['posts:read']) && (
+      {isAuthorized({ roles: ['user'], permissions: ['posts:read'] }) && (
         <div>Authorized to read posts</div>
       )}
     </div>
@@ -130,6 +105,11 @@ It accepts the following props:
 - `roles`: An array of roles. The user must have at least one of these roles to access the children of the `CanAccess` component.
 
 - `permissions`: An optional array of permissions. If specified, the user must also have these permissions to access the children.
+
+- `validationMode`: Optional. Defines how roles and permissions are validated. It accepts:
+
+  - `'all'`: All roles/permissions must match.
+  - `'some'`: At least one role/permission must match.
 
 - `children`: The content that should be rendered if the user has the required roles and permissions.
 

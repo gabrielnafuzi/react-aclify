@@ -1,16 +1,9 @@
-import { render, screen, renderHook } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, renderHook, screen } from '@testing-library/react'
 
 import { createAclify, type CanAccessProps } from './create-aclify'
 
 type Role = 'admin' | 'user'
 type Permission = 'read' | 'write'
-type User = {
-  id: number
-  name: string
-  roles: Role[]
-  permissions: Permission[]
-}
 
 const props: CanAccessProps<Role, Permission> = {
   roles: ['admin'],
@@ -20,8 +13,7 @@ const props: CanAccessProps<Role, Permission> = {
 
 const { AclifyProvider, CanAccess, useAclify } = createAclify<
   Role,
-  Permission,
-  User
+  Permission
 >()
 
 const originalConsoleError = console.error
@@ -47,19 +39,15 @@ describe('useAclify()', () => {
     )
   })
 
-  it('returns setUser and isAuthorized', () => {
+  it('returns isAuthorized', () => {
     const { result } = renderHook(() => useAclify(), {
       wrapper: ({ children }) => (
-        <AclifyProvider
-          getUserRoles={() => ['admin']}
-          getUserPermissions={() => ['read']}
-        >
+        <AclifyProvider userRoles={['admin']} userPermissions={['read']}>
           {children}
         </AclifyProvider>
       ),
     })
 
-    expect(result.current.setUser).toBeInstanceOf(Function)
     expect(result.current.isAuthorized).toBeInstanceOf(Function)
   })
 })
@@ -68,41 +56,36 @@ describe('useAclify().isAuthorized()', () => {
   it('returns true when authorized', () => {
     const { result } = renderHook(() => useAclify(), {
       wrapper: ({ children }) => (
-        <AclifyProvider
-          getUserRoles={() => ['admin']}
-          getUserPermissions={() => ['read']}
-        >
+        <AclifyProvider userRoles={['admin']} userPermissions={['read']}>
           {children}
         </AclifyProvider>
       ),
     })
 
-    expect(result.current.isAuthorized(['admin'], ['read'])).toBe(true)
+    expect(
+      result.current.isAuthorized({ roles: ['admin'], permissions: ['read'] }),
+    ).toBe(true)
   })
 
   it('returns false when not authorized', () => {
     const { result } = renderHook(() => useAclify(), {
       wrapper: ({ children }) => (
-        <AclifyProvider
-          getUserRoles={() => ['user']}
-          getUserPermissions={() => ['write']}
-        >
+        <AclifyProvider userRoles={['user']} userPermissions={['write']}>
           {children}
         </AclifyProvider>
       ),
     })
 
-    expect(result.current.isAuthorized(['admin'], ['read'])).toBe(false)
+    expect(
+      result.current.isAuthorized({ roles: ['admin'], permissions: ['read'] }),
+    ).toBe(false)
   })
 })
 
 describe('useAclify().CanAccess', () => {
   it('renders children when authorized', () => {
     render(
-      <AclifyProvider
-        getUserRoles={() => ['admin']}
-        getUserPermissions={() => ['read']}
-      >
+      <AclifyProvider userRoles={['admin']} userPermissions={['read']}>
         <CanAccess {...props} />
       </AclifyProvider>,
     )
@@ -112,10 +95,7 @@ describe('useAclify().CanAccess', () => {
 
   it('does not render children when not authorized', () => {
     render(
-      <AclifyProvider
-        getUserRoles={() => ['user']}
-        getUserPermissions={() => ['write']}
-      >
+      <AclifyProvider userRoles={['user']} userPermissions={['write']}>
         <CanAccess {...props} />
       </AclifyProvider>,
     )
@@ -125,150 +105,11 @@ describe('useAclify().CanAccess', () => {
 
   it('renders fallback when not authorized', () => {
     render(
-      <AclifyProvider
-        getUserRoles={() => ['user']}
-        getUserPermissions={() => ['write']}
-      >
+      <AclifyProvider userRoles={['user']} userPermissions={['write']}>
         <CanAccess {...props} fallback={<div>Not authorized</div>} />
       </AclifyProvider>,
     )
 
     expect(screen.getByText('Not authorized')).toBeInTheDocument()
-  })
-})
-
-describe('useAclify().setUser()', () => {
-  it('updates user (checking with isAuthorized)', async () => {
-    const Component = () => {
-      const { setUser, isAuthorized } = useAclify()
-
-      return (
-        <div>
-          <button
-            type="button"
-            onClick={() =>
-              setUser({
-                id: 1,
-                name: 'John',
-                roles: ['admin'],
-                permissions: ['read'],
-              })
-            }
-          >
-            Set user
-          </button>
-
-          {isAuthorized(['admin'], ['read']) ? (
-            <div>Authorized</div>
-          ) : (
-            <div>Not authorized</div>
-          )}
-        </div>
-      )
-    }
-
-    render(
-      <AclifyProvider
-        getUserRoles={(user) => user?.roles ?? []}
-        getUserPermissions={(user) => user?.permissions ?? []}
-      >
-        <Component />
-      </AclifyProvider>,
-    )
-
-    await userEvent.click(screen.getByText('Set user'))
-    expect(await screen.findByText('Authorized')).toBeInTheDocument()
-  })
-
-  it('updates user (checking with <CanAccess />)', async () => {
-    const Component = () => {
-      const { setUser } = useAclify()
-
-      return (
-        <div>
-          <button
-            type="button"
-            onClick={() =>
-              setUser({
-                id: 1,
-                name: 'John',
-                roles: ['admin'],
-                permissions: ['read'],
-              })
-            }
-          >
-            Set user
-          </button>
-
-          <CanAccess roles={['admin']} permissions={['read']}>
-            <div>Authorized</div>
-          </CanAccess>
-        </div>
-      )
-    }
-
-    render(
-      <AclifyProvider
-        getUserRoles={(user) => user?.roles ?? []}
-        getUserPermissions={(user) => user?.permissions ?? []}
-      >
-        <Component />
-      </AclifyProvider>,
-    )
-
-    await userEvent.click(screen.getByText('Set user'))
-    expect(await screen.findByText('Authorized')).toBeInTheDocument()
-  })
-
-  it("toggles between 'Authorized' and 'Not authorized'", async () => {
-    const Component = () => {
-      const { setUser, isAuthorized } = useAclify()
-
-      return (
-        <div>
-          <button
-            type="button"
-            onClick={() =>
-              setUser({
-                id: 1,
-                name: 'John',
-                roles: ['admin'],
-                permissions: ['read'],
-              })
-            }
-          >
-            Set user
-          </button>
-
-          <button type="button" onClick={() => setUser(null)}>
-            Remove user
-          </button>
-
-          {isAuthorized(['admin'], ['read']) ? (
-            <div>Authorized</div>
-          ) : (
-            <div>Not authorized</div>
-          )}
-        </div>
-      )
-    }
-
-    render(
-      <AclifyProvider
-        getUserRoles={(user) => user?.roles ?? []}
-        getUserPermissions={(user) => user?.permissions ?? []}
-      >
-        <Component />
-      </AclifyProvider>,
-    )
-
-    await userEvent.click(screen.getByText('Set user'))
-    expect(await screen.findByText('Authorized')).toBeInTheDocument()
-
-    await userEvent.click(screen.getByText('Remove user'))
-    expect(await screen.findByText('Not authorized')).toBeInTheDocument()
-
-    await userEvent.click(screen.getByText('Set user'))
-    expect(await screen.findByText('Authorized')).toBeInTheDocument()
   })
 })

@@ -1,90 +1,46 @@
 'use client'
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react'
-
-import { DEFAULT_STORAGE_KEY, getUserStorage } from './storage'
+import { createContext, useContext, useMemo } from 'react'
 
 export type AclifyContext<
   Role extends string = string,
   Permission extends string = string,
-  User extends Record<string, unknown> = Record<string, unknown>,
 > = {
   /**
-   * Function to get the user roles when checking permissions.
+   * The roles of the user.
    */
-  getUserRoles: (user?: User | null) => Role[]
+  userRoles: Role[]
   /**
-   * Function to get the user permissions when checking permissions.
+   * The permissions of the user.
    */
-  getUserPermissions: (user?: User | null) => Permission[]
-  /**
-   * The current user.
-   */
-  user: User | null
-  /**
-   * Function to set the user. This will also update the user in local storage.
-   * @param user The user to set. If null, the user will be removed from local storage.
-   */
-  setUser: (user: User | null) => void
+  userPermissions: Permission[]
 }
 
 export type AclifyProviderProps<
   Role extends string = string,
   Permission extends string = string,
-  User extends Record<string, unknown> = Record<string, unknown>,
 > = {
   children: React.ReactNode
-  /**
-   * The key to use for storing the user in local storage.
-   * @default '__REACT_ACLIFY_USER__'
-   */
-  storageKey?: string
-} & Pick<
-  AclifyContext<Role, Permission, User>,
-  'getUserRoles' | 'getUserPermissions'
->
+} & Pick<AclifyContext<Role, Permission>, 'userRoles' | 'userPermissions'>
 
 export function createAclifyContext<
   Role extends string = string,
   Permission extends string = string,
-  User extends Record<string, unknown> = Record<string, unknown>,
 >() {
-  const AclifyContext = createContext<AclifyContext<
-    Role,
-    Permission,
-    User
-  > | null>(null)
+  const AclifyContext = createContext<AclifyContext<Role, Permission> | null>(
+    null,
+  )
 
   const AclifyProvider = ({
     children,
-    getUserPermissions,
-    getUserRoles,
-    storageKey = DEFAULT_STORAGE_KEY,
-  }: AclifyProviderProps<Role, Permission, User>) => {
-    const userStorage = getUserStorage<User>(storageKey)
-    const [user, setUser] = useState<User | null>(userStorage.getUser())
-
-    const handleSetUser = useCallback(
-      (user: User | null) => {
-        setUser(user)
-        userStorage.setUser(user)
-      },
-      [userStorage],
-    )
-
+    userPermissions,
+    userRoles,
+  }: AclifyProviderProps<Role, Permission>) => {
     const values = useMemo(() => {
       return {
-        getUserPermissions,
-        getUserRoles,
-        user,
-        setUser: handleSetUser,
+        userPermissions,
+        userRoles,
       }
-    }, [getUserPermissions, getUserRoles, user, handleSetUser])
+    }, [userPermissions, userRoles])
 
     return (
       <AclifyContext.Provider value={values}>{children}</AclifyContext.Provider>

@@ -1,12 +1,10 @@
-import { act, renderHook } from '@testing-library/react'
+import { renderHook } from '@testing-library/react'
 
 import { createAclifyContext } from './create-aclify-context'
-import { DEFAULT_STORAGE_KEY } from './storage'
 
 const originalConsoleError = console.error
 
 beforeEach(() => {
-  localStorage.clear()
   console.error = originalConsoleError
 })
 
@@ -17,38 +15,19 @@ describe('createAclifyContext()', () => {
     expect(useAclify).toBeDefined()
   })
 
-  it('provides user state and methods', () => {
+  it('provides user roles and permissions', () => {
     const { AclifyProvider, useAclify } = createAclifyContext()
 
     const { result } = renderHook(() => useAclify(), {
       wrapper: ({ children }) => (
-        <AclifyProvider
-          getUserRoles={() => ['admin']}
-          getUserPermissions={() => ['read']}
-        >
+        <AclifyProvider userRoles={['admin']} userPermissions={['read']}>
           {children}
         </AclifyProvider>
       ),
     })
 
-    expect(result.current.user).toBeNull()
-    expect(result.current.getUserRoles).toBeInstanceOf(Function)
-    expect(result.current.getUserPermissions).toBeInstanceOf(Function)
-    expect(result.current.setUser).toBeInstanceOf(Function)
-
-    act(() => {
-      result.current.setUser({
-        id: 1,
-        roles: ['admin'],
-        permissions: ['read'],
-      })
-    })
-
-    expect(result.current.user).toEqual({
-      id: 1,
-      roles: ['admin'],
-      permissions: ['read'],
-    })
+    expect(result.current.userRoles).toEqual(['admin'])
+    expect(result.current.userPermissions).toEqual(['read'])
   })
 
   it('throws error when used outside provider', () => {
@@ -58,81 +37,5 @@ describe('createAclifyContext()', () => {
     expect(() => renderHook(() => useAclify())).toThrowError(
       'useAclify must be used within a AclifyProvider',
     )
-  })
-
-  it("users initial state from storage if it's available", () => {
-    localStorage.setItem(
-      DEFAULT_STORAGE_KEY,
-      JSON.stringify({
-        id: 1,
-        roles: ['admin'],
-        permissions: ['read'],
-      }),
-    )
-
-    const { AclifyProvider, useAclify } = createAclifyContext()
-
-    const { result } = renderHook(() => useAclify(), {
-      wrapper: ({ children }) => (
-        <AclifyProvider
-          getUserRoles={() => ['admin']}
-          getUserPermissions={() => ['read']}
-        >
-          {children}
-        </AclifyProvider>
-      ),
-    })
-
-    expect(result.current.user).toEqual({
-      id: 1,
-      roles: ['admin'],
-      permissions: ['read'],
-    })
-  })
-
-  it('uses other storage key if provided', () => {
-    const key = 'custom-storage-key'
-
-    localStorage.setItem(
-      key,
-      JSON.stringify({
-        id: 1,
-        roles: ['admin'],
-        permissions: ['read'],
-      }),
-    )
-
-    const { AclifyProvider, useAclify } = createAclifyContext()
-
-    const { result } = renderHook(() => useAclify(), {
-      wrapper: ({ children }) => (
-        <AclifyProvider
-          getUserRoles={() => ['admin']}
-          getUserPermissions={() => ['read']}
-          storageKey={key}
-        >
-          {children}
-        </AclifyProvider>
-      ),
-    })
-
-    const { result: resultDefault } = renderHook(() => useAclify(), {
-      wrapper: ({ children }) => (
-        <AclifyProvider
-          getUserRoles={() => ['admin']}
-          getUserPermissions={() => ['read']}
-        >
-          {children}
-        </AclifyProvider>
-      ),
-    })
-
-    expect(result.current.user).toEqual({
-      id: 1,
-      roles: ['admin'],
-      permissions: ['read'],
-    })
-
-    expect(resultDefault.current.user).toBeNull()
   })
 })

@@ -1,7 +1,7 @@
 'use client'
 import { useCallback, useMemo } from 'react'
 
-import { canAccessHelper } from './can-access-helper'
+import { canAccessHelper, CanAccessHelperParams } from './can-access-helper'
 import { createAclifyContext } from './create-aclify-context'
 
 export type CanAccessProps<
@@ -9,34 +9,29 @@ export type CanAccessProps<
   Permissions extends string = string,
 > = {
   /**
-   * The roles required to access the content.
+   * The content to render when the user is authorized.
    */
-  roles: Roles[]
-  /**
-   * The permissions required to access the content.
-   */
-  permissions?: Permissions[]
   children: React.ReactNode
   /**
    * The fallback to render when the user is not authorized.
    */
   fallback?: React.ReactNode
-}
+} & Pick<
+  CanAccessHelperParams<Roles, Permissions>,
+  'roles' | 'permissions' | 'validationMode'
+>
 
 export function createAclify<
   Role extends string = string,
   Permission extends string = string,
-  User extends Record<string, unknown> = Record<string, unknown>,
 >() {
   const { AclifyProvider, useAclify: useAclifyContext } = createAclifyContext<
     Role,
-    Permission,
-    User
+    Permission
   >()
 
   const useAclify = () => {
-    const { getUserPermissions, getUserRoles, user, setUser } =
-      useAclifyContext()
+    const { userPermissions, userRoles } = useAclifyContext()
 
     /**
      * Check if the user is authorized to access the content.
@@ -44,35 +39,43 @@ export function createAclify<
      * @param permissions The permissions required to access the content.
      */
     const isAuthorized = useCallback(
-      (roles: Role[], permissions?: Permission[]) => {
+      ({
+        roles,
+        permissions,
+        validationMode,
+      }: Pick<
+        CanAccessHelperParams<Role, Permission>,
+        'roles' | 'permissions' | 'validationMode'
+      >) => {
         return canAccessHelper({
           roles,
           permissions,
-          userPermissions: getUserPermissions(user),
-          userRoles: getUserRoles(user),
+          userPermissions,
+          userRoles,
+          validationMode,
         })
       },
-      [user, getUserPermissions, getUserRoles],
+      [],
     )
 
     return useMemo(
       () => ({
-        setUser,
         isAuthorized,
       }),
-      [setUser, isAuthorized],
+      [isAuthorized],
     )
   }
 
   const CanAccess = ({
     roles,
     permissions,
+    validationMode,
     children,
     fallback,
   }: CanAccessProps<Role, Permission>) => {
     const { isAuthorized } = useAclify()
 
-    if (isAuthorized(roles, permissions)) {
+    if (isAuthorized({ roles, permissions, validationMode })) {
       return children
     }
 
@@ -84,4 +87,16 @@ export function createAclify<
     useAclify,
     CanAccess,
   }
+}
+
+const Component = () => {
+  const { isAuthorized } = useAclify()
+
+  return (
+    <div>
+      {isAuthorized({ roles: ['user'], permissions: ['posts:read'] }) && (
+        <div>Authorized to read posts</div>
+      )}
+    </div>
+  )
 }
