@@ -1,7 +1,10 @@
 'use client'
 import { useCallback, useMemo } from 'react'
 
-import { canAccessHelper, CanAccessHelperParams } from './can-access-helper'
+import {
+  canAccessHelper,
+  type CanAccessHelperParams,
+} from './can-access-helper'
 import { createAclifyContext } from './create-aclify-context'
 
 export type CanAccessProps<
@@ -55,7 +58,7 @@ export function createAclify<
           validationMode,
         })
       },
-      [],
+      [userPermissions, userRoles],
     )
 
     return useMemo(
@@ -87,16 +90,4 @@ export function createAclify<
     useAclify,
     CanAccess,
   }
-}
-
-const Component = () => {
-  const { isAuthorized } = useAclify()
-
-  return (
-    <div>
-      {isAuthorized({ roles: ['user'], permissions: ['posts:read'] }) && (
-        <div>Authorized to read posts</div>
-      )}
-    </div>
-  )
 }

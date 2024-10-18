@@ -25,5 +25,5 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["./src/**/*", ".eslintrc.js", ".prettierrc.js"]
+  "include": ["./src/**/*", "eslint.config.mjs", ".prettierrc.js"]
 }
